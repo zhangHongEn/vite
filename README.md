@@ -1,92 +1,93 @@
-# module-federation-vite
+# Vite plugin for Module Federation
 
+## Reason why 🤔
 
+[Microservices](https://martinfowler.com/articles/microservices.html) nowadays is a well-known concept and maybe you are using it in your current company.
+Do you know that now you can apply similar ideas on the Frontend?
+With [Module Federation](https://blog.logrocket.com/building-micro-frontends-webpacks-module-federation/#:~:text=Module%20federation%20is%20a%20JavaScript,between%20two%20different%20application%20codebases.) you can load separately compiled and deployed code into a unique application.
+This plugin makes Module Federation work together with [Vite](https://vitejs.dev/).
 
-## Getting started
+## Working implementations
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+### [React](https://github.com/module-federation/module-federation-examples/tree/master/vite-react-microfrontends)<br>
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+### [Svelte](https://github.com/module-federation/module-federation-examples/tree/master/vite-svelte-microfrontends)<br>
 
-## Add your files
+### [Vue](https://github.com/module-federation/module-federation-examples/tree/master/vite-vue-microfrontends)
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+## preview
 
+```shell
+pnpm install && pnpm run dev
+pnpm install && pnpm run build
 ```
-cd existing_repo
-git remote add origin http://gitlab.bwcjxt.com/chagee-basis/module-federation-vite.git
-git branch -M master
-git push -uf origin master
+
+## Getting started 🚀
+
+https://module-federation.io/guide/basic/webpack.html
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import mf from 'module-federation-vite';
+import topLevelAwait from 'vite-plugin-top-level-await';
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [
+    vue(),
+    mf({
+      name: 'bbc',
+      remotes: {
+        mfapp01: 'mfapp01@https://unpkg.com/mf-app-01@1.0.9/dist/remoteEntry.js',
+        remote2: 'mfapp02@https://unpkg.com/mf-app-02/dist/remoteEntry.js',
+        remote3:
+          'remote1@https://unpkg.com/react-manifest-example_remote1@1.0.6/dist/mf-manifest.json',
+        // "remote4": {
+        //   entry: "http://localhost:5174/dd/remoteEntry.js",
+        //   globalEntryName: "bb",
+        //   type: "esm"
+        // }
+      },
+      exposes: {
+        App: './src/App.vue',
+      },
+      filename: 'dd/remoteEntry.js',
+      shared: {
+        vue: {},
+        react: {
+          requiredVersion: '18',
+        },
+      },
+    }),
+    // If you set build.target: "chrome89", you can remove this plugin
+    // topLevelAwait(),
+  ],
+  build: {
+    target: 'chrome89',
+  },
+});
 ```
 
-## Integrate with your tools
+## roadmap
 
-- [ ] [Set up project integrations](http://gitlab.bwcjxt.com/chagee-basis/module-federation-vite/-/settings/integrations)
+- fix: remoteEntry and hostInit file names support hash generation
+- feat: generate mf-manifest.json
+- feat: support chrome plugin
+- feat: support runtime plugins
+- feat: download remote d.ts
+- feat: generate d.ts
+- feat: support @vitejs/plugin-legacy
 
-## Collaborate with your team
+### So far so good 🎉
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+Now you are ready to use Module Federation in Vite!
 
-## Test and Deploy
+## Thanks 🤝
 
-Use the built-in continuous integration in GitLab.
+Big thanks to:
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+[Manfred Steyer](https://twitter.com/manfredsteyer), Speaker, Trainer, Consultant and Author with focus on Angular. Google Developer Expert (GDE) and Microsoft MVP.
 
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+who collaborate with me to make this possible.

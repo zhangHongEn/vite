@@ -1,0 +1,36 @@
+{
+  "name": "@module-federation/vite-demo",
+  "version": "0.2.8",
+  "description": "Vite plugin for Module Federation",
+  "scripts": {
+    "dev:examples-vite": "cd packages/examples-vite && npm run dev",
+    "dev:examples-rust": "cd packages/examples-rust && npm run dev",
+    "dev": "npx -y npm-run-all --parallel dev:examples-vite dev:examples-rust",
+    "build:examples-vite": "cd packages/examples-vite && npm run build",
+    "build:examples-rust": "cd packages/examples-rust && npm run build",
+    "build": "npx -y npm-run-all --parallel build:examples-vite build:examples-rust",
+    "preview": "cd packages/examples-vite && npm run preview"
+  },
+  "author": {
+    "name": "Giorgio Boa",
+    "email": "giorgiob.boa@gmail.com",
+    "url": "https://github.com/gioboa"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/module-federation/vite.git"
+  },
+  "keywords": [
+    "vite",
+    "module federation",
+    "microfrontend"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/module-federation/vite/issues"
+  },
+  "homepage": "https://github.com/module-federation/vite#readme",
+  "devDependencies": {
+    "husky": "^8.0.3"
+  }
+}
