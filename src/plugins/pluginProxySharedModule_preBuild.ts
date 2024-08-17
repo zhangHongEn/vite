@@ -3,7 +3,7 @@ import { walk } from 'estree-walker';
 import MagicString from 'magic-string';
 import { Plugin, UserConfig } from 'vite';
 import { NormalizedShared } from '../utils/normalizeModuleFederationOptions';
-import { getLoadShareModulePath, getPreBuildLibPath, writeLoadShareModule, writeLocalSharedImportMap } from '../virtualModules/virtualShared_preBuild';
+import { getLoadShareModulePath1 as getLoadShareModulePath, getPreBuildLibPath, writeLoadShareModule, writeLocalSharedImportMap } from '../virtualModules/virtualShared_preBuild';
 export function proxySharedModule(
   options: { shared?: NormalizedShared; include?: string | string[]; exclude?: string | string[] }
 ): Plugin[] {
@@ -23,6 +23,7 @@ export function proxySharedModule(
             // write proxyFile
             writeLoadShareModule(key, shared[key], command)
             const preBuildLibPath = getLoadShareModulePath(key)
+            console.log(123231, preBuildLibPath)
             return {
               // Intercept all dependency requests to the proxy module
               // Dependency requests issued by localSharedImportMap are allowed without proxying.

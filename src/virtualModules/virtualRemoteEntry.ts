@@ -36,9 +36,9 @@ export function generateRemoteEntry(options: NormalizedModuleFederationOptions):
   async function init(shared = {}) {
     const localShared = {
       ${Object.keys(options.shared)
-        .map((key) => {
-          const shareItem = options.shared[key];
-          return `
+      .map((key) => {
+        const shareItem = options.shared[key];
+        return `
           ${JSON.stringify(key)}: {
             name: ${JSON.stringify(shareItem.name)},
             version: ${JSON.stringify(shareItem.version)},
@@ -51,10 +51,10 @@ export function generateRemoteEntry(options: NormalizedModuleFederationOptions):
               const res = await pkgDynamicImport()
               const exportModule = {...res}
               // All npm packages pre-built by vite will be converted to esm
-              Object.defineProperty(exportModule, "__esModule", {
-                value: true,
-                enumerable: false
-              })
+              // Object.defineProperty(exportModule, "__esModule", {
+              //   value: true,
+              //   enumerable: false
+              // })
               return function () {
                 return exportModule
               }
@@ -65,15 +65,15 @@ export function generateRemoteEntry(options: NormalizedModuleFederationOptions):
             }
           }
         `;
-        })
-        .join(',')}
+      })
+      .join(',')}
     }
     const initRes = runtimeInit({
       name: ${JSON.stringify(options.name)},
       remotes: [${Object.keys(options.remotes)
-        .map((key) => {
-          const remote = options.remotes[key];
-          return `
+      .map((key) => {
+        const remote = options.remotes[key];
+        return `
                 {
                   entryGlobalName: ${JSON.stringify(remote.entryGlobalName)},
                   name: ${JSON.stringify(remote.name)},
@@ -81,8 +81,8 @@ export function generateRemoteEntry(options: NormalizedModuleFederationOptions):
                   entry: ${JSON.stringify(remote.entry)},
                 }
           `;
-        })
-        .join(',')}
+      })
+      .join(',')}
       ],
       shared: localShared,
       plugins: [${pluginImportNames.map((item) => `${item[0]}()`).join(', ')}]
