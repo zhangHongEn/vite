@@ -1,6 +1,8 @@
+import styled from "@emotion/styled";
 import React from 'react';
 import ReactDOM from 'react-dom';
 import "./app2.sass";
+console.log(1234445, styled)
 
 console.log("App2 shared React", React, ReactDOM)
 export function App2() {

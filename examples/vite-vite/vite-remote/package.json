@@ -5,15 +5,17 @@
   "scripts": {
     "dev": "vite --force --port 5176",
     "build": "vite build",
-    "preview": "vite build && http-server --cors -p 5176 dist"
+    "preview": "vite build && vite preview --port 5176"
   },
   "dependencies": {
+    "@emotion/styled": "^11.13.0",
     "@module-federation/vite": "workspace:*",
     "ag-grid-community": "^30.2.0",
     "ag-grid-react": "^30.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.2.0",
     "sass-embedded": "^1.77.8",
+    "styled-components": "^6.1.12",
     "vue": "^3.4.37",
     "vue-router": "^4.4.3"
   },

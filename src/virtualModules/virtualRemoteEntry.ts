@@ -62,6 +62,7 @@ export function generateRemoteEntry(options: NormalizedModuleFederationOptions):
       })
       .join(',')}
     }
+      console.log(123, shared)
     const initRes = runtimeInit({
       name: ${JSON.stringify(options.name)},
       remotes: [${Object.keys(options.remotes)

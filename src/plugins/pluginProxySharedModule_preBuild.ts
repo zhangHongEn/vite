@@ -3,7 +3,7 @@ import { walk } from 'estree-walker';
 import MagicString from 'magic-string';
 import { Plugin, UserConfig } from 'vite';
 import { NormalizedShared } from '../utils/normalizeModuleFederationOptions';
-import { getLoadShareModulePath, getPreBuildLibPath, writeLoadShareModule, writeLocalSharedImportMap } from '../virtualModules/virtualShared_preBuild';
+import { getLoadShareModulePath, writeLoadShareModule, writeLocalSharedImportMap } from '../virtualModules/virtualShared_preBuild';
 export function proxySharedModule(
   options: { shared?: NormalizedShared; include?: string | string[]; exclude?: string | string[] }
 ): Plugin[] {
@@ -17,33 +17,44 @@ export function proxySharedModule(
       config(config: UserConfig, { command }) {
         // config?.optimizeDeps?.include?.push?.("an-empty-js-file");
         // config.optimizeDeps.needsInterop.push('an-empty-js-file');
-        (config.resolve as any).alias.push(
-          ...Object.keys(shared).map((key) => {
-            config?.optimizeDeps?.include?.push?.(getPreBuildLibPath(key));
-            // write proxyFile
-            writeLoadShareModule(key, shared[key], command)
-            const preBuildLibPath = getLoadShareModulePath(key)
-            return {
-              // Intercept all dependency requests to the proxy module
-              // Dependency requests issued by localSharedImportMap are allowed without proxying.
-              find: new RegExp(`^${key}$`), replacement: preBuildLibPath, customResolver(source: string, importer: string) {
-                if (importer.includes(`node_modules/${key}/`)) {
-                  return (this as any).resolve(key)
-                }
-                return (this as any).resolve(preBuildLibPath)
-              }
+        Object.keys(shared).forEach((key) => {
+          const proxyEntire = {
+            // Intercept all dependency requests to the proxy module
+            // Dependency requests issued by localSharedImportMap are allowed without proxying.
+            find: new RegExp(`^${key}$`), replacement: key, customResolver(source: string, importer: string) {
+              writeLoadShareModule(source, shared[key], command)
+              const preBuildLibPath = getLoadShareModulePath(source)
+              // if (importer.includes(`node_modules/${key}/`)) {
+              //   return (this as any).resolve(key)
+              // }
+              config?.optimizeDeps?.include?.push?.(preBuildLibPath);
+              return (this as any).resolve(preBuildLibPath)
             }
-          })
-        );
-        (config.resolve as any).alias.push(
-          ...Object.keys(shared).map((key) => {
-            return {
-              find: new RegExp(`^${getPreBuildLibPath(key)}$`), customResolver(source: string, importer: string) {
+          }
+          const proxyDirectory = {
+            // Intercept all dependency requests to the proxy module
+            // Dependency requests issued by localSharedImportMap are allowed without proxying.
+            find: new RegExp(`^(${key}\/.*)`), replacement: "$1", customResolver(source: string, importer: string) {
+              writeLoadShareModule(source, shared[key], command)
+              const preBuildLibPath = getLoadShareModulePath(source)
+              // if (importer.includes(`node_modules/${key}/`)) {
+              //   return (this as any).resolve(key)
+              // }
+              console.log(11122234, source, preBuildLibPath)
+              config?.optimizeDeps?.include?.push?.(preBuildLibPath);
+              return (this as any).resolve(preBuildLibPath)
+            }
+          }
+          const preBuildLibPath = getLoadShareModulePath(key)
+            ; (config.resolve?.alias as any).push({
+              find: new RegExp(`^${preBuildLibPath}$`), customResolver(source: string, importer: string) {
+                console.log("newal", source)
+
                 return (this as any).resolve(key)
               }
-            }
-          })
-        );
+            })
+            ; (config.resolve?.alias as any).push(proxyEntire, proxyDirectory)
+        })
       },
     },
     {
@@ -71,7 +82,8 @@ export function proxySharedModule(
             if (node.type === 'ExportNamedDeclaration' && node.specifiers) {
               const exportSpecifiers = node.specifiers.map((specifier: any) => specifier.exported.name);
               const proxyStatements = exportSpecifiers.map((name: string) => `
-                const __mfproxy__await${name} = await ${name}();
+              console.log('loadsharestart')
+                const __mfproxy__await${name} = await (${name}()).catch(e => console.error(11111, e)||e.e.e);
                 const __mfproxy__${name} = () => __mfproxy__await${name};
               `).join('\n');
               const exportStatements = exportSpecifiers.map((name: string) => `__mfproxy__${name} as ${name}`).join(', ');

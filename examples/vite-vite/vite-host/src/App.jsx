@@ -1,8 +1,5 @@
-import Mfapp01App from 'mfapp01/App';
 import R from 'react';
 import RD from 'react-dom/client';
-import Remote2App from 'remote2/App';
-import Button from 'remote3/button';
 
 import { AgGridDemo } from '@namespace/viteViteRemote/AgGridDemo';
 import App1 from '@namespace/viteViteRemote/App1';
@@ -16,13 +13,13 @@ export default function () {
   return (
     <div>
       Vite React
-      <h2>Button</h2>
+      {/* <h2>Button</h2>
       <Button />
       <h2>Remote2App</h2>
       <Remote2App />
       <h2>Mfapp01App</h2>
-      <Mfapp01App />
-      <h2>Vite Remote App1</h2>
+      <Mfapp01App /> */}
+      {/* <h2>Vite Remote App1</h2> */}
       <App1 />
       <h2>Vite Remote App2</h2>
       <App2 />

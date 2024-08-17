@@ -22,6 +22,8 @@ export default defineConfig({
       },
       filename: 'remoteEntry.js',
       shared: {
+        '@emotion/styled': { singleton: true },
+        'styled-components': {},
         vue: {},
         react: {
           requiredVersion: '18',

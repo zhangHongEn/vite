@@ -36,7 +36,11 @@ export function writeLocalSharedImportMap(pkgList: string[]) {
       ${pkgList.map(pkg => `
         ${JSON.stringify(pkg)}: async () => {
           let pkg = await import("${getPreBuildLibPath(pkg)}")
-          return pkg
+          console.log("${pkg}", pkg)
+          return {
+            ...pkg,
+            __esModule: true
+          }
         }
       `).join(",")}
     }
@@ -54,8 +58,7 @@ export function getLoadShareModulePath(pkg: string): string {
   return resolve(emptyNpmDir, filename)
 }
 export function writeLoadShareModule(pkg: string, shareItem: ShareItem, command: string) {
-
-  writeFileSync(getLoadShareModulePath(pkg), `
+  writeFileSync(getLoadShareModulePath(pkg) + ".js", `
     // dev uses dynamic import to separate chunks
     ${command !== "build" ? `;() => import(${JSON.stringify(pkg)}).catch(() => {});` : ''}
     const {loadShare} = require("@module-federation/runtime")
