@@ -14,7 +14,7 @@ const emptyNpmDir = resolve(require.resolve("an-empty-js-file"), "../")
  */
 const cacheMap2: Record<string, string> = {}
 export function getPreBuildLibPath(pkg: string): string {
-  if (!cacheMap2[pkg]) cacheMap2[pkg] = `an-empty-js-file/__mf__prebuildwrap_${npmPackageNameToFileName(pkg)}.js`
+  if (!cacheMap2[pkg]) cacheMap2[pkg] = `__mf__prebuildwrap_${npmPackageNameToFileName(pkg)}.js`
   const filename = cacheMap2[pkg]
   return filename
 }

@@ -10,7 +10,7 @@ import {
   normalizeModuleFederationOptions
 } from './utils/normalizeModuleFederationOptions';
 import normalizeOptimizeDepsPlugin from './utils/normalizeOptimizeDeps';
-import { HOST_AUTO_INIT_PATH, WRAP_REMOTE_ENTRY_PATH } from './virtualModules/virtualRemoteEntry';
+import { WRAP_HOST_AUTO_INIT_PATH, WRAP_REMOTE_ENTRY_PATH } from './virtualModules/virtualRemoteEntry';
 
 function federation(mfUserOptions: ModuleFederationOptions): Plugin[] {
   const options = normalizeModuleFederationOptions(mfUserOptions);
@@ -28,7 +28,7 @@ function federation(mfUserOptions: ModuleFederationOptions): Plugin[] {
     }),
     ...addEntry({
       entryName: 'hostInit',
-      entryPath: HOST_AUTO_INIT_PATH,
+      entryPath: WRAP_HOST_AUTO_INIT_PATH,
     }),
     pluginProxyRemoteEntry(),
     pluginProxyRemotes(options),
@@ -42,7 +42,12 @@ function federation(mfUserOptions: ModuleFederationOptions): Plugin[] {
         ; (config.resolve as any).alias.push({
           find: '@module-federation/runtime',
           replacement: require.resolve('@module-federation/runtime'),
-        },)
+        },
+        // {
+        //   find: 'an-empty-js-file',
+        //   replacement: require.resolve('an-empty-js-file'),
+        // }
+      )
 
         config.optimizeDeps?.include?.push('@module-federation/runtime');
         // Object.keys(shared).forEach((key) => {

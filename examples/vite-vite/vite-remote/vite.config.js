@@ -10,6 +10,7 @@ export default defineConfig({
     port: 5176,
     origin: 'http://localhost:5176',
   },
+  resolve: {},
   preview: {
     port: 5176,
   },
@@ -34,7 +35,7 @@ export default defineConfig({
           requiredVersion: '18',
         },
         'react-dom': {},
-        'styled-components': { singleton: true },
+        // 'styled-components': { singleton: true },
         'ag-grid-community': {},
         'ag-grid-react': {},
         // "@emotion/react": {},

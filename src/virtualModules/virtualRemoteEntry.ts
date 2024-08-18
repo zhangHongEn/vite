@@ -51,10 +51,10 @@ export function generateRemoteEntry(options: NormalizedModuleFederationOptions):
               const res = await pkgDynamicImport()
               const exportModule = {...res}
               // All npm packages pre-built by vite will be converted to esm
-              // Object.defineProperty(exportModule, "__esModule", {
-              //   value: true,
-              //   enumerable: false
-              // })
+              Object.defineProperty(exportModule, "__esModule", {
+                value: true,
+                enumerable: false
+              })
               return function () {
                 return exportModule
               }
@@ -87,6 +87,7 @@ export function generateRemoteEntry(options: NormalizedModuleFederationOptions):
       shared: localShared,
       plugins: [${pluginImportNames.map((item) => `${item[0]}()`).join(', ')}]
     });
+    console.log(1111999, shared, initRes)
     initRes.initShareScopeMap('${options.shareScope}', shared);
     return initRes
   }
@@ -115,11 +116,17 @@ export function generateWrapRemoteEntry(): string {
  * Inject entry file, automatically init when used as host,
  * and will not inject remoteEntry
  */
-export const HOST_AUTO_INIT_QUERY_STR = '__mf__isHostInit';
-export const HOST_AUTO_INIT_PATH = emptyPath + '?' + HOST_AUTO_INIT_QUERY_STR;
-export function generateWrapHostInit(): string {
+// export const HOST_AUTO_INIT_QUERY_STR = '__mf__isHostInit';
+export const HOST_AUTO_INIT_ID = "HOST_AUTO_INIT"
+export function generateHostAutoInit(options: NormalizedModuleFederationOptions): string {
+  return generateRemoteEntry(options);
+}
+
+export const WRAP_HOST_AUTO_INIT_QUERY_STR = '__mf__wrapIsHostInit__';
+export const WRAP_HOST_AUTO_INIT_PATH = emptyPath + '?' + WRAP_HOST_AUTO_INIT_QUERY_STR;
+export function generateWrapIsHostInit() {
   return `
-    import {init} from "${REMOTE_ENTRY_ID}"
-    init()
-    `;
+  import {init, get} from "${HOST_AUTO_INIT_ID}"
+  init()
+  `;
 }

@@ -3,7 +3,7 @@ import { walk } from 'estree-walker';
 import MagicString from 'magic-string';
 import { Plugin, UserConfig } from 'vite';
 import { NormalizedShared } from '../utils/normalizeModuleFederationOptions';
-import { getLoadShareModulePath1 as getLoadShareModulePath, getPreBuildLibPath, writeLoadShareModule, writeLocalSharedImportMap } from '../virtualModules/virtualShared_preBuild';
+import { getLoadShareModulePath, getPreBuildLibPath, writeLoadShareModule, writeLocalSharedImportMap } from '../virtualModules/virtualShared_preBuild';
 export function proxySharedModule(
   options: { shared?: NormalizedShared; include?: string | string[]; exclude?: string | string[] }
 ): Plugin[] {
@@ -23,7 +23,7 @@ export function proxySharedModule(
             // write proxyFile
             writeLoadShareModule(key, shared[key], command)
             const preBuildLibPath = getLoadShareModulePath(key)
-            console.log(123231, preBuildLibPath)
+            config?.optimizeDeps?.needsInterop?.push(key);
             return {
               // Intercept all dependency requests to the proxy module
               // Dependency requests issued by localSharedImportMap are allowed without proxying.
@@ -31,6 +31,7 @@ export function proxySharedModule(
                 if (importer.includes(`node_modules/${key}/`)) {
                   return (this as any).resolve(key)
                 }
+                config?.optimizeDeps?.needsInterop?.push(preBuildLibPath);
                 return (this as any).resolve(preBuildLibPath)
               }
             }
@@ -38,14 +39,26 @@ export function proxySharedModule(
         );
         (config.resolve as any).alias.push(
           ...Object.keys(shared).map((key) => {
-            return {
+            return command === "build" ?
+            { find: new RegExp(`^${getPreBuildLibPath(key)}$`), replacement: key } :
+             {
               find: new RegExp(`^${getPreBuildLibPath(key)}$`), customResolver(source: string, importer: string) {
+                
                 return (this as any).resolve(key)
               }
             }
           })
         );
       },
+      // transform(code, id) {
+      //   if (id.includes(LOAD_SHARE_TAG)) {
+      //     console.log(1111,id, code)
+      //     return {
+      //       code,
+      //       syntheticNamedExports: "__mf__dynamicExports"
+      //     }
+      //   }
+      // }
     },
     {
       name: "prebuild-top-level-await",

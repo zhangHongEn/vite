@@ -3,6 +3,7 @@ import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { AgGridReact } from 'ag-grid-react';
 import { useState } from 'react';
 import './agGrid.css';
+console.log(1110,AgGridReact, import("ag-grid-react"))
 
 
 export const AgGridDemo = ({ }) => {

@@ -1,5 +1,4 @@
 import { UserConfig } from 'vite';
-import { HOST_AUTO_INIT_QUERY_STR, WRAP_REMOTE_ENTRY_QUERY_STR } from '../virtualModules/virtualRemoteEntry';
 import { LOAD_SHARE_TAG } from '../virtualModules/virtualShared_preBuild';
 
 interface Output {
@@ -24,8 +23,12 @@ function normalizeManualChunks(output: Output, singleChunkModules: string[]): vo
   const wrapManualChunks =
     (original: any) =>
       (id: string, ...args: any[]) => {
-        if (id.includes(LOAD_SHARE_TAG) || id.includes(HOST_AUTO_INIT_QUERY_STR) || id.includes(WRAP_REMOTE_ENTRY_QUERY_STR)) {
-          console.log(123213333, id.split("/").pop())
+        if (id.includes("node_modules/@module-federation/runtime") ||id.includes("node_modules/@module-federation_runtime") ) {
+          return "@module-federation/runtime"
+        }
+        console.log(191818181, id)
+        if (id.includes(LOAD_SHARE_TAG) || id.includes("__mf__prebuildwrap_")) {
+          // console.log(191818181, id.split("/").pop())
           return id.split("/").pop()
         }
         if (typeof original === 'function') {
