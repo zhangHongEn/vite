@@ -1,5 +1,6 @@
 import { Plugin } from 'vite';
 import addEntry from './plugins/pluginAddEntry';
+import pluginModuleParseEnd from './plugins/pluginModuleParseEnd';
 import pluginProxyRemoteEntry from './plugins/pluginProxyRemoteEntry';
 import pluginProxyRemotes from './plugins/pluginProxyRemotes';
 import { proxySharedModule } from './plugins/pluginProxySharedModule_preBuild';
@@ -30,6 +31,7 @@ function federation(mfUserOptions: ModuleFederationOptions): Plugin[] {
     }),
     pluginProxyRemoteEntry(),
     pluginProxyRemotes(options),
+    ...pluginModuleParseEnd(),
     ...proxySharedModule({
       shared,
     }),

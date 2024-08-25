@@ -47,5 +47,7 @@ export default defineConfig({
   ],
   build: {
     target: 'chrome89',
+    modulePreload: false,
+    polyfillModulePreload: false,
   },
 });

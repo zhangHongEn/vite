@@ -3,15 +3,35 @@ import { walk } from 'estree-walker';
 import MagicString from 'magic-string';
 import { Plugin, UserConfig } from 'vite';
 import { NormalizedShared } from '../utils/normalizeModuleFederationOptions';
+import { packageNameDecode } from '../utils/packageNameUtils';
 import { wrapManualChunks } from '../utils/wrapManualChunks';
-import { getLoadShareModulePath, getPreBuildLibPath, LOAD_SHARE_TAG, writeLoadShareModule, writeLocalSharedImportMap } from '../virtualModules/virtualShared_preBuild';
+import { addShare, generateLocalSharedImportMap, getLoadShareModulePath, getLocalSharedImportMapId, LOAD_SHARE_TAG, writeLoadShareModule, writePreBuildLibPath } from '../virtualModules/virtualShared_preBuild';
 export function proxySharedModule(
   options: { shared?: NormalizedShared; include?: string | string[]; exclude?: string | string[] }
 ): Plugin[] {
   let { shared = {}, include, exclude } = options;
   const filterFunction = createFilter(include, exclude);
-  writeLocalSharedImportMap(Object.keys(shared))
+  // writeLocalSharedImportMap(Object.keys(shared))
   return [
+    {
+      name: "generateLocalSharedImportMap",
+      enforce: "post",
+      resolveId(id) {
+        if (id.includes(getLocalSharedImportMapId()))
+        return id
+      },
+      load(id) {
+        if (id.includes(getLocalSharedImportMapId())){
+          console.log("__mf__localSharedImportMap__mf__localSharedImportMap")
+          return generateLocalSharedImportMap()
+        }
+      },
+      transform(code, id) {
+        if (id.includes(getLocalSharedImportMapId())){
+          return generateLocalSharedImportMap()
+        }
+      }
+    },
     {
       name: 'preBuildShared',
       enforce: 'post',
@@ -30,22 +50,30 @@ export function proxySharedModule(
             return id.split("/").pop()
           }
         });
+        config?.optimizeDeps?.include?.push('an-emtpy-js-file');
         ; (config.resolve as any).alias.push(
           ...Object.keys(shared).map((key) => {
-            config?.optimizeDeps?.include?.push?.(getPreBuildLibPath(key));
-            // write proxyFile
-            writeLoadShareModule(key, shared[key], command)
-            const preBuildLibPath = getLoadShareModulePath(key)
+            
             config?.optimizeDeps?.needsInterop?.push(key);
             return {
               // Intercept all dependency requests to the proxy module
               // Dependency requests issued by localSharedImportMap are allowed without proxying.
-              find: new RegExp(`^${key}$`), replacement: preBuildLibPath, customResolver(source: string, importer: string) {
-                if (importer.includes(`node_modules/${key}/`)) {
-                  return (this as any).resolve(key)
-                }
-                config?.optimizeDeps?.needsInterop?.push(preBuildLibPath);
-                return (this as any).resolve(preBuildLibPath)
+              find: new RegExp(`(^${key}(\/.+)?$)`), replacement: "$1", customResolver(source: string, importer: string) {
+                // if (importer.includes(`node_modules/${source}/`)) {
+                //   console.log(250250, importer, source)
+                //   return (this as any).resolve(source)
+                // }
+                const loadSharePath = getLoadShareModulePath(source)
+                config?.optimizeDeps?.needsInterop?.push(loadSharePath);
+                console.log(155555, source, importer)
+                // write proxyFile
+                writeLoadShareModule(source, shared[key], command)
+                addShare(source)
+                // config?.optimizeDeps?.include?.push?.(getPreBuildLibPath(source));
+                // console.log(5555, getPreBuildLibPath(source).replace("__mf__prebuildwrap_", ""))
+                writePreBuildLibPath(source)
+                config?.optimizeDeps?.include?.push?.("__mf__prebuildwrapa_abcabc");
+                return (this as any).resolve(loadSharePath)
               }
             }
           })
@@ -53,13 +81,24 @@ export function proxySharedModule(
         (config.resolve as any).alias.push(
           ...Object.keys(shared).map((key) => {
             return command === "build" ?
-              { find: new RegExp(`^${getPreBuildLibPath(key)}$`), replacement: key } :
-              {
-                find: new RegExp(`^${getPreBuildLibPath(key)}$`), customResolver(source: string, importer: string) {
-
-                  return (this as any).resolve(key)
+            { find: new RegExp(`__mf__prebuildwrap_(.+)`), replacement: function (_: string, $1: string) {
+              console.log(123999, packageNameDecode($1))
+              return packageNameDecode($1)
+            } } :
+            { find: new RegExp(`__mf__prebuildwrap_(.+)`), customResolver(source: string, importer: string) {
+              console.log(9999999, source)
+                  return (this as any).resolve("react-dom")
                 }
-              }
+            }
+          })
+        );
+        (config.resolve as any).alias.push(
+          ...Object.keys(shared).map((key) => {
+            return { find: new RegExp(`__mf__prebuildwrapa/abcabc`), customResolver(source: string, replacement:"$$$aad", importer: string) {
+              console.log(999999910, source)
+                  return (this as any).resolve("vue")
+                }
+            }
           })
         );
       },

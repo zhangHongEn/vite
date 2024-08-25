@@ -1,5 +1,7 @@
 import React from 'react';
+import 'react-dom';
 import ReactDOM from 'react-dom/client';
+// import "react/jsx-runtime";
 import { AgGridDemo } from './AgGridDemo';
 import App1 from './App1';
 import { App2 } from './App2';

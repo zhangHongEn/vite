@@ -6,7 +6,10 @@
 
 import { writeFileSync } from "fs";
 import { resolve } from "pathe";
+// import { parsePromise } from "../plugins/pluginModuleParseEnd";
 import { getNormalizeModuleFederationOptions, ShareItem } from "../utils/normalizeModuleFederationOptions";
+import { packageNameEncode, removePathFromNpmPackage } from "../utils/packageNameUtils";
+import VirtualModule from "../utils/VirtualModule";
 const emptyNpmDir = resolve(require.resolve("an-empty-js-file"), "../")
 
 /**
@@ -14,33 +17,75 @@ const emptyNpmDir = resolve(require.resolve("an-empty-js-file"), "../")
  */
 const cacheMap2: Record<string, string> = {}
 export function getPreBuildLibPath(pkg: string): string {
-  if (!cacheMap2[pkg]) cacheMap2[pkg] = `__mf__prebuildwrap_${npmPackageNameToFileName(pkg)}.js`
+  if (!cacheMap2[pkg]) cacheMap2[pkg] = `__mf__prebuildwrap_${packageNameEncode(pkg)}`
   const filename = cacheMap2[pkg]
   return filename
 }
-
-function getLocalSharedImportMapFileName() {
-  const { name } = getNormalizeModuleFederationOptions()
-  return npmPackageNameToFileName(name) + "_" + "__mf__localSharedImportMap.js"
+export function writePreBuildLibPath(pkg: string): string {
+  const filename = resolve(emptyNpmDir, `__mf__prebuildwrap_${packageNameEncode(pkg)}.js`)
+writeFileSync(filename, "")
+  return filename
 }
-// Only npm package name import can trigger pre-build, absolute path cannot
+export const localSharedImportMapModule = new VirtualModule("localsharedMap")
+localSharedImportMapModule.write("")
 export function getLocalSharedImportMapId() {
-  return `an-empty-js-file/${getLocalSharedImportMapFileName()}`
+  return localSharedImportMapModule.getPath()
 }
-export function getLocalSharedImportMapPath() {
-  return resolve(emptyNpmDir, getLocalSharedImportMapFileName())
-}
-export function writeLocalSharedImportMap(pkgList: string[]) {
-  writeFileSync(getLocalSharedImportMapPath(), `
-    export default {
-      ${pkgList.map(pkg => `
+let shareds: Record<string, null> = {}
+export async function generateLocalSharedImportMap() {
+  // await (global as any).parsePromise
+  await new Promise(res => {
+    setTimeout(() => {
+      res(1)
+    }, 3000);
+  })
+  const options = getNormalizeModuleFederationOptions()
+  return `
+;() =>import("@module-federation/runtime");
+    const localSharedImportMap = {
+      ${Object.keys(shareds).map(pkg => `
         ${JSON.stringify(pkg)}: async () => {
           let pkg = await import("${getPreBuildLibPath(pkg)}")
           return pkg
         }
       `).join(",")}
     }
-    `)
+      const localShared = {
+      ${Object.keys(shareds)
+        .map((key) => {
+          const shareItem = options.shared[removePathFromNpmPackage(key)];
+          return `
+          ${JSON.stringify(key)}: {
+            name: ${JSON.stringify(shareItem.name)},
+            version: ${JSON.stringify(shareItem.version)},
+            scope: [${JSON.stringify(shareItem.scope)}],
+            loaded: false,
+            from: ${JSON.stringify(options.name)},
+            async get () {
+              localShared[${JSON.stringify(key)}].loaded = true
+              const {${JSON.stringify(key)}: pkgDynamicImport} = localSharedImportMap 
+              const res = await pkgDynamicImport()
+              const exportModule = {...res}
+              // All npm packages pre-built by vite will be converted to esm
+              Object.defineProperty(exportModule, "__esModule", {
+                value: true,
+                enumerable: false
+              })
+              return function () {
+                return exportModule
+              }
+            },
+            shareConfig: {
+              singleton: ${shareItem.shareConfig.singleton},
+              requiredVersion: ${JSON.stringify(shareItem.shareConfig.requiredVersion)}
+            }
+          }
+        `;
+        })
+        .join(',')}
+    }
+      export default localShared
+      `
 }
 
 export const LOAD_SHARE_TAG = "__mf__loadShare_"
@@ -50,13 +95,14 @@ export const LOAD_SHARE_TAG = "__mf__loadShare_"
 const cacheMap1: Record<string, string> = {}
 export function getLoadShareModulePath(pkg: string): string {
   const { name } = getNormalizeModuleFederationOptions()
-  if (!cacheMap1[pkg]) cacheMap1[pkg] = npmPackageNameToFileName(name) + "_" + `${LOAD_SHARE_TAG}${npmPackageNameToFileName(pkg)}.js`
+  if (!cacheMap1[pkg]) cacheMap1[pkg] = packageNameEncode(name) + "_" + `${LOAD_SHARE_TAG}${packageNameEncode(pkg)}.js`
   const filename = cacheMap1[pkg]
   return resolve(emptyNpmDir, filename)
 }
 export function writeLoadShareModule(pkg: string, shareItem: ShareItem, command: string) {
-
+  console.log(123123132, pkg)
   writeFileSync(getLoadShareModulePath(pkg), `
+    () => import(${JSON.stringify(getPreBuildLibPath(pkg))}).catch(() => {});
     // dev uses dynamic import to separate chunks
     ${command !== "build" ? `;() => import(${JSON.stringify(pkg)}).catch(() => {});` : ''}
     const {loadShare} = require("@module-federation/runtime")
@@ -71,12 +117,8 @@ export function writeLoadShareModule(pkg: string, shareItem: ShareItem, command:
   `)
 }
 
-function npmPackageNameToFileName(packageName: string) {
-  // 1. 去掉包名前的 "@"
-  // 2. 将包名中的 "/" 替换为 "__" 以避免文件路径问题
-  // 3. 去掉不合法的文件名字符
-  return packageName
-    .replace(/^@/, '')      // 移除作用域前缀 "@"
-    .replace(/\//g, '__')   // 将 "/" 替换为 "__"
-    .replace(/[^a-zA-Z0-9_.-]/g, '_'); // 替换其他非法字符为 "_"
+
+export function addShare(pkg: string) {
+  console.log("dadadadaaddadd", pkg)
+  shareds[pkg] = null
 }
