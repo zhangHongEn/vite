@@ -1,4 +1,4 @@
-import react from '@vitejs/plugin-react';
+
 import { defineConfig } from 'vite';
 
 // https://vitejs.dev/config/
@@ -12,8 +12,30 @@ export default defineConfig({
     port: 5176,
   },
   base: 'http://localhost:5176',
-  plugins: [react({ jsxImportSource: '@emotion/react' })],
+  resolve: {
+    alias: {
+      react: "./src/mockModules/loadReact.js",
+      "react-dom": "./src/mockModules/loadReactDom.js",
+      localReact: "react",
+      localReactDom: "react-dom",
+    }
+  },
   build: {
     target: 'chrome89',
+    rollupOptions: {
+      output: {
+        chunkFileNames: "[name][hash].js",
+        manualChunks(id) {
+          if (id.includes("loadReactDom")) return "loadReactDom"
+          if (id.includes("loadReact")) return "loadReact"
+          if (id.includes("hostAutoInit")) {
+            return "hostAutoInit"
+          }
+          if (id.includes("remoteEntry")) {
+            return "remoteEntry"
+          }
+        }
+      }
+    }
   },
 });
