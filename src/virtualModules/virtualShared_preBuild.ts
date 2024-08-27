@@ -4,43 +4,43 @@
  * You can only proxy to the real file through alias
  */
 
-import { writeFileSync } from "fs";
-import { resolve } from "pathe";
 // import { parsePromise } from "../plugins/pluginModuleParseEnd";
 import { getNormalizeModuleFederationOptions, ShareItem } from "../utils/normalizeModuleFederationOptions";
-import { packageNameEncode, removePathFromNpmPackage } from "../utils/packageNameUtils";
+import { removePathFromNpmPackage } from "../utils/packageNameUtils";
 import VirtualModule from "../utils/VirtualModule";
-const emptyNpmDir = resolve(require.resolve("an-empty-js-file"), "../")
 
-/**
- * The original shared module is proxied by getLoadShareModulePath, and the new shared module is prebuilt here
- */
-const cacheMap2: Record<string, string> = {}
+const cacheMap2: Record<string, VirtualModule> = {}
+export const PREBUILD_TAG = "__prebuild__"
+// this is the proxied module, react, vue and other modules
 export function getPreBuildLibPath(pkg: string): string {
-  if (!cacheMap2[pkg]) cacheMap2[pkg] = `__mf__prebuildwrap_${packageNameEncode(pkg)}`
-  const filename = cacheMap2[pkg]
-  return filename
+  if (!cacheMap2[pkg]) cacheMap2[pkg] = new VirtualModule(PREBUILD_TAG + pkg)
+  const filepath = cacheMap2[pkg].getPath()
+  return filepath
 }
-export function writePreBuildLibPath(pkg: string): string {
-  const filename = resolve(emptyNpmDir, `__mf__prebuildwrap_${packageNameEncode(pkg)}.js`)
-  writeFileSync(filename, "")
-  return filename
+export function writePreBuildLibPath(pkg: string) {
+  cacheMap2[pkg].write("")
 }
-export const localSharedImportMapModule = new VirtualModule("localsharedMap")
+
+// All proxied modules are exposed here
+export const localSharedImportMapModule = new VirtualModule("localSharedImportMap")
 localSharedImportMapModule.write("")
 export function getLocalSharedImportMapId() {
   return localSharedImportMapModule.getPath()
 }
 let shareds: Record<string, null> = {}
 export async function generateLocalSharedImportMap() {
-  await (global as any).parsePromise
+  // await (global as any).parsePromise
+  // await new Promise(res => {
+  //   setTimeout(() => {
+  //     res(1)
+  //   }, 3000);
+  // })
   const options = getNormalizeModuleFederationOptions()
   return `
-;() =>import("@module-federation/runtime");
     const localSharedImportMap = {
       ${Object.keys(shareds).map(pkg => `
         ${JSON.stringify(pkg)}: async () => {
-          let pkg = await import("${getPreBuildLibPath(pkg)}")
+          let pkg = await import("${getPreBuildLibImportId(pkg)}")
           return pkg
         }
       `).join(",")}
@@ -83,21 +83,24 @@ export async function generateLocalSharedImportMap() {
       `
 }
 
-export const LOAD_SHARE_TAG = "__mf__loadShare_"
+export const LOAD_SHARE_TAG = "__loadShare__"
 /**
  * generate loadShare virtual module
  */
-const cacheMap1: Record<string, string> = {}
+const cacheMap1: Record<string, VirtualModule> = {}
 export function getLoadShareModulePath(pkg: string): string {
-  const { name } = getNormalizeModuleFederationOptions()
-  if (!cacheMap1[pkg]) cacheMap1[pkg] = packageNameEncode(name) + "_" + `${LOAD_SHARE_TAG}${packageNameEncode(pkg)}.js`
-  const filename = cacheMap1[pkg]
-  return resolve(emptyNpmDir, filename)
+  if (!cacheMap1[pkg]) cacheMap1[pkg] = new VirtualModule(LOAD_SHARE_TAG + pkg)
+  const filepath = cacheMap1[pkg].getPath()
+  return filepath
+}
+export function getPreBuildLibImportId(pkg: string): string {
+  if (!cacheMap2[pkg]) cacheMap2[pkg] = new VirtualModule(PREBUILD_TAG + pkg)
+  const importId = cacheMap2[pkg].getImportId()
+  return importId
 }
 export function writeLoadShareModule(pkg: string, shareItem: ShareItem, command: string) {
-  console.log(123123132, pkg)
-  writeFileSync(getLoadShareModulePath(pkg), `
-    () => import(${JSON.stringify(getPreBuildLibPath(pkg))}).catch(() => {});
+  cacheMap1[pkg].write(`
+    () => import(${JSON.stringify(getPreBuildLibImportId(pkg))}).catch(() => {});
     // dev uses dynamic import to separate chunks
     ${command !== "build" ? `;() => import(${JSON.stringify(pkg)}).catch(() => {});` : ''}
     const {loadShare} = require("@module-federation/runtime")

@@ -5,7 +5,7 @@ import { Plugin, UserConfig } from 'vite';
 import { NormalizedShared } from '../utils/normalizeModuleFederationOptions';
 import { packageNameDecode } from '../utils/packageNameUtils';
 import { wrapManualChunks } from '../utils/wrapManualChunks';
-import { addShare, generateLocalSharedImportMap, getLoadShareModulePath, getLocalSharedImportMapId, LOAD_SHARE_TAG, writeLoadShareModule, writePreBuildLibPath } from '../virtualModules/virtualShared_preBuild';
+import { addShare, generateLocalSharedImportMap, getLoadShareModulePath, getLocalSharedImportMapId, getPreBuildLibImportId, LOAD_SHARE_TAG, PREBUILD_TAG, writeLoadShareModule, writePreBuildLibPath } from '../virtualModules/virtualShared_preBuild';
 export function proxySharedModule(
   options: { shared?: NormalizedShared; include?: string | string[]; exclude?: string | string[] }
 ): Plugin[] {
@@ -40,20 +40,22 @@ export function proxySharedModule(
         if (!config.build.rollupOptions) config.build.rollupOptions = {};
         let { rollupOptions } = config.build;
         if (!rollupOptions.output) rollupOptions.output = {};
-        // config?.optimizeDeps?.include?.push?.("an-empty-js-file");
-        // config.optimizeDeps.needsInterop.push('an-empty-js-file');
         wrapManualChunks(config.build.rollupOptions.output, (id: string) => {
+          // https://github.com/module-federation/vite/issues/40#issuecomment-2311434503
+          if (id.includes('/preload-helper.js')) {
+            return "preload-helper"
+          }
           if (id.includes("node_modules/@module-federation/runtime")) {
             return "@module-federation/runtime"
           }
-          if (id.includes(LOAD_SHARE_TAG) || id.includes("__mf__prebuildwrap_")) {
+          if (id.includes(LOAD_SHARE_TAG) || id.includes(PREBUILD_TAG)) {
             return id.split("/").pop()
           }
           if (id.includes('/preload-helper.js')) {
             return "preload-helper"
           }
         });
-        config?.optimizeDeps?.include?.push('an-emtpy-js-file');
+        // config?.optimizeDeps?.include?.push?.("__mf__virtual");
         ; (config.resolve as any).alias.push(
           ...Object.keys(shared).map((key) => {
 
@@ -62,10 +64,10 @@ export function proxySharedModule(
               // Intercept all dependency requests to the proxy module
               // Dependency requests issued by localSharedImportMap are allowed without proxying.
               find: new RegExp(`(^${key}(\/.+)?$)`), replacement: "$1", customResolver(source: string, importer: string) {
-                // if (importer.includes(`node_modules/${source}/`)) {
-                //   console.log(250250, importer, source)
-                //   return (this as any).resolve(source)
-                // }
+                if (importer.includes(`${getLocalSharedImportMapId()}`) || importer.includes(getPreBuildLibImportId(source))) {
+                  console.log(250250, importer, source)
+                  return (this as any).resolve(source)
+                }
                 const loadSharePath = getLoadShareModulePath(source)
                 config?.optimizeDeps?.needsInterop?.push(loadSharePath);
                 console.log(155555, source, importer)
@@ -75,7 +77,6 @@ export function proxySharedModule(
                 // config?.optimizeDeps?.include?.push?.(getPreBuildLibPath(source));
                 // console.log(5555, getPreBuildLibPath(source).replace("__mf__prebuildwrap_", ""))
                 writePreBuildLibPath(source)
-                config?.optimizeDeps?.include?.push?.("__mf__prebuildwrapa_abcabc");
                 return (this as any).resolve(loadSharePath)
               }
             }
@@ -85,27 +86,15 @@ export function proxySharedModule(
           ...Object.keys(shared).map((key) => {
             return command === "build" ?
               {
-                find: new RegExp(`__mf__prebuildwrap_(.+)`), replacement: function (_: string, $1: string) {
-                  console.log(123999, packageNameDecode($1))
+                find: new RegExp(`__mf__virtual/${PREBUILD_TAG}(.+)`), replacement: function (_: string, $1: string) {
                   return packageNameDecode($1)
                 }
               } :
               {
-                find: new RegExp(`__mf__prebuildwrap_(.+)`), customResolver(source: string, importer: string) {
-                  console.log(9999999, source)
-                  return (this as any).resolve("react-dom")
+                find: new RegExp(`__mf__virtual/${PREBUILD_TAG}(.+)`), replacement: function (_: string, $1: string) {
+                  return packageNameDecode($1)
                 }
               }
-          })
-        );
-        (config.resolve as any).alias.push(
-          ...Object.keys(shared).map((key) => {
-            return {
-              find: new RegExp(`__mf__prebuildwrapa/abcabc`), customResolver(source: string, replacement: "$$$aad", importer: string) {
-                console.log(999999910, source)
-                return (this as any).resolve("vue")
-              }
-            }
           })
         );
       },

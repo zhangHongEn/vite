@@ -2,13 +2,14 @@ import { mkdirSync, writeFileSync } from "fs";
 import { resolve } from "pathe";
 import { packageNameEncode } from "../utils/packageNameUtils";
 
-const emptyNpmDir = resolve("./node_modules/__mf__virtual")
+const nodeModulesDir = resolve("./node_modules")
+const virtualPackageName = "__mf__virtual"
 try {
-  mkdirSync(emptyNpmDir)
-} catch (e) { }
-writeFileSync(resolve(emptyNpmDir, "empty.js"), "")
-writeFileSync(resolve(emptyNpmDir, "package.json"), JSON.stringify({
-  name: "__mf__virtual",
+  mkdirSync(resolve(nodeModulesDir, virtualPackageName))
+}catch(e) {}
+writeFileSync(resolve(nodeModulesDir, virtualPackageName, "empty.js"), "")
+writeFileSync(resolve(nodeModulesDir, virtualPackageName, "package.json"), JSON.stringify({
+  name: virtualPackageName,
   main: "empty.js"
 }))
 
@@ -17,15 +18,15 @@ writeFileSync(resolve(emptyNpmDir, "package.json"), JSON.stringify({
  * 因为插件无法干预vite prebunding
  */
 export default class VirtualModule {
-  name: string
+  originName: string
   constructor(name: string) {
-    this.name = name
+    this.originName = name
   }
   getPath() {
-    return resolve(emptyNpmDir, this.getTag())
+    return resolve(nodeModulesDir, this.getImportId())
   }
-  getTag() {
-    return `__mf__${packageNameEncode(this.name)}`
+  getImportId() {
+    return `${virtualPackageName}/${packageNameEncode(this.originName)}`
   }
   write(code: string) {
     writeFileSync(this.getPath() + ".js", code)

@@ -23,7 +23,7 @@ export default function (options: NormalizedModuleFederationOptions): Plugin {
             if (config.optimizeDeps.needsInterop.indexOf(source) === -1)
               config.optimizeDeps.needsInterop.push(source);
             return this.resolve(
-              require.resolve('an-empty-js-file') + '?__moduleRemote__=' + encodeURIComponent(source)
+              require.resolve('__mf__virtual') + '?__moduleRemote__=' + encodeURIComponent(source)
             );
           },
         });

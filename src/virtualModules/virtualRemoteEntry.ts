@@ -1,7 +1,6 @@
 import { NormalizedModuleFederationOptions } from '../utils/normalizeModuleFederationOptions';
 import VirtualModule from '../utils/VirtualModule';
 import { getLocalSharedImportMapId } from './virtualShared_preBuild';
-const emptyPath = require.resolve('an-empty-js-file');
 
 export const REMOTE_ENTRY_ID = 'REMOTE_ENTRY_ID';
 export function generateRemoteEntry(options: NormalizedModuleFederationOptions): string {
@@ -70,26 +69,22 @@ export function generateRemoteEntry(options: NormalizedModuleFederationOptions):
   `;
 }
 
-export const WRAP_REMOTE_ENTRY_QUERY_STR = '__mf__wrapRemoteEntry__';
-export const WRAP_REMOTE_ENTRY_PATH = emptyPath + '?' + WRAP_REMOTE_ENTRY_QUERY_STR;
-export function generateWrapRemoteEntry(): string {
-  return `
-  import {init, get} from "${REMOTE_ENTRY_ID}"
-  export {init, get}
-  `;
-}
+const wrapRemoteEntryModule = new VirtualModule("wrapRemoteEntry")
+wrapRemoteEntryModule.write(`
+import {init, get} from "${REMOTE_ENTRY_ID}"
+export {init, get}
+`)
+export const WRAP_REMOTE_ENTRY_QUERY_STR = wrapRemoteEntryModule.getImportId();
+export const WRAP_REMOTE_ENTRY_PATH = wrapRemoteEntryModule.getPath();
 
 /**
  * Inject entry file, automatically init when used as host,
  * and will not inject remoteEntry
  */
-const mo = new VirtualModule("hostAutoInit")
-mo.write("")
-export const HOST_AUTO_INIT_QUERY_STR = mo.getTag();
-export const HOST_AUTO_INIT_PATH = mo.getPath();
-export function generateWrapHostInit(): string {
-  return `
+const hostAutoInitModule = new VirtualModule("hostAutoInit")
+hostAutoInitModule.write(`
     import {init} from "${REMOTE_ENTRY_ID}"
     init()
-    `;
-}
+    `)
+export const HOST_AUTO_INIT_QUERY_STR = hostAutoInitModule.getImportId();
+export const HOST_AUTO_INIT_PATH = hostAutoInitModule.getPath();

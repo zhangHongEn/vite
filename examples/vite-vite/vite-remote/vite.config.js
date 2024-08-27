@@ -10,6 +10,11 @@ export default defineConfig({
     port: 5176,
     origin: 'http://localhost:5176',
   },
+  resolve: {
+    alias: {
+      '__mf__virtual/test': 'vue',
+    },
+  },
   preview: {
     port: 5176,
   },
@@ -29,7 +34,7 @@ export default defineConfig({
       },
       filename: 'remoteEntry.js',
       shared: {
-        vue: {},
+        // vue: {},
         react: {
           requiredVersion: '18',
         },
