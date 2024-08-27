@@ -23,7 +23,7 @@ export function getPreBuildLibPath(pkg: string): string {
 }
 export function writePreBuildLibPath(pkg: string): string {
   const filename = resolve(emptyNpmDir, `__mf__prebuildwrap_${packageNameEncode(pkg)}.js`)
-writeFileSync(filename, "")
+  writeFileSync(filename, "")
   return filename
 }
 export const localSharedImportMapModule = new VirtualModule("localsharedMap")
@@ -33,12 +33,7 @@ export function getLocalSharedImportMapId() {
 }
 let shareds: Record<string, null> = {}
 export async function generateLocalSharedImportMap() {
-  // await (global as any).parsePromise
-  await new Promise(res => {
-    setTimeout(() => {
-      res(1)
-    }, 3000);
-  })
+  await (global as any).parsePromise
   const options = getNormalizeModuleFederationOptions()
   return `
 ;() =>import("@module-federation/runtime");
@@ -52,9 +47,9 @@ export async function generateLocalSharedImportMap() {
     }
       const localShared = {
       ${Object.keys(shareds)
-        .map((key) => {
-          const shareItem = options.shared[removePathFromNpmPackage(key)];
-          return `
+      .map((key) => {
+        const shareItem = options.shared[removePathFromNpmPackage(key)];
+        return `
           ${JSON.stringify(key)}: {
             name: ${JSON.stringify(shareItem.name)},
             version: ${JSON.stringify(shareItem.version)},
@@ -81,8 +76,8 @@ export async function generateLocalSharedImportMap() {
             }
           }
         `;
-        })
-        .join(',')}
+      })
+      .join(',')}
     }
       export default localShared
       `

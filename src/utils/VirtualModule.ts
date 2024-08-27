@@ -5,7 +5,7 @@ import { packageNameEncode } from "../utils/packageNameUtils";
 const emptyNpmDir = resolve("./node_modules/__mf__virtual")
 try {
   mkdirSync(emptyNpmDir)
-}catch(e) {}
+} catch (e) { }
 writeFileSync(resolve(emptyNpmDir, "empty.js"), "")
 writeFileSync(resolve(emptyNpmDir, "package.json"), JSON.stringify({
   name: "__mf__virtual",

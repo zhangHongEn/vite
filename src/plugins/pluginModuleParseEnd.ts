@@ -7,22 +7,21 @@ let _resolve: any, _reject: any, promise = new Promise((resolve, reject) => {
   _reject = reject
 })
 
-let parseStartCount = 0,
-  parseEndCount = 0,
-  parsePromise = promise
+let parsePromise = promise
 
-;(global as any).parsePromise = promise
+  ; (global as any).parsePromise = promise
+const parseStartSet = new Set()
+const parseEndSet = new Set()
 export default function (): Plugin[] {
   return [
     {
       enforce: "pre",
       name: "parseStart",
       load(id) {
-        if (id.includes(HOST_AUTO_INIT_QUERY_STR) || id.includes(WRAP_REMOTE_ENTRY_QUERY_STR) || id.includes(getLocalSharedImportMapId())) {
-          console.log(123213, id)
+        if (id.includes(HOST_AUTO_INIT_QUERY_STR) || id.includes(WRAP_REMOTE_ENTRY_QUERY_STR) || id.includes("REMOTE_ENTRY_ID") || id.includes(getLocalSharedImportMapId())) {
           return
         }
-        parseStartCount++
+        parseStartSet.add(id)
       }
     },
     {
@@ -30,13 +29,9 @@ export default function (): Plugin[] {
       name: "parseEnd",
       moduleParsed(module) {
         const id = module.id
-        if (id.includes(HOST_AUTO_INIT_QUERY_STR) || id.includes(WRAP_REMOTE_ENTRY_QUERY_STR) || id.includes(getLocalSharedImportMapId())) {
-          console.log(123213, id)
-          return
-        }
-        if (id.includes(HOST_AUTO_INIT_QUERY_STR) || id.includes(WRAP_REMOTE_ENTRY_QUERY_STR) || id.includes(getLocalSharedImportMapId())) return
-        parseEndCount++
-        if (parseStartCount === parseEndCount) {
+        if (id.includes(HOST_AUTO_INIT_QUERY_STR) || id.includes(WRAP_REMOTE_ENTRY_QUERY_STR)) return
+        parseEndSet.add(id)
+        if (parseStartSet.size === parseEndSet.size) {
           _resolve(1)
         }
       }

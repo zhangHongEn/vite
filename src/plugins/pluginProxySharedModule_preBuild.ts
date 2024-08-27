@@ -18,16 +18,16 @@ export function proxySharedModule(
       enforce: "post",
       resolveId(id) {
         if (id.includes(getLocalSharedImportMapId()))
-        return id
+          return id
       },
       load(id) {
-        if (id.includes(getLocalSharedImportMapId())){
+        if (id.includes(getLocalSharedImportMapId())) {
           console.log("__mf__localSharedImportMap__mf__localSharedImportMap")
           return generateLocalSharedImportMap()
         }
       },
       transform(code, id) {
-        if (id.includes(getLocalSharedImportMapId())){
+        if (id.includes(getLocalSharedImportMapId())) {
           return generateLocalSharedImportMap()
         }
       }
@@ -49,11 +49,14 @@ export function proxySharedModule(
           if (id.includes(LOAD_SHARE_TAG) || id.includes("__mf__prebuildwrap_")) {
             return id.split("/").pop()
           }
+          if (id.includes('/preload-helper.js')) {
+            return "preload-helper"
+          }
         });
         config?.optimizeDeps?.include?.push('an-emtpy-js-file');
         ; (config.resolve as any).alias.push(
           ...Object.keys(shared).map((key) => {
-            
+
             config?.optimizeDeps?.needsInterop?.push(key);
             return {
               // Intercept all dependency requests to the proxy module
@@ -81,23 +84,27 @@ export function proxySharedModule(
         (config.resolve as any).alias.push(
           ...Object.keys(shared).map((key) => {
             return command === "build" ?
-            { find: new RegExp(`__mf__prebuildwrap_(.+)`), replacement: function (_: string, $1: string) {
-              console.log(123999, packageNameDecode($1))
-              return packageNameDecode($1)
-            } } :
-            { find: new RegExp(`__mf__prebuildwrap_(.+)`), customResolver(source: string, importer: string) {
-              console.log(9999999, source)
+              {
+                find: new RegExp(`__mf__prebuildwrap_(.+)`), replacement: function (_: string, $1: string) {
+                  console.log(123999, packageNameDecode($1))
+                  return packageNameDecode($1)
+                }
+              } :
+              {
+                find: new RegExp(`__mf__prebuildwrap_(.+)`), customResolver(source: string, importer: string) {
+                  console.log(9999999, source)
                   return (this as any).resolve("react-dom")
                 }
-            }
+              }
           })
         );
         (config.resolve as any).alias.push(
           ...Object.keys(shared).map((key) => {
-            return { find: new RegExp(`__mf__prebuildwrapa/abcabc`), customResolver(source: string, replacement:"$$$aad", importer: string) {
-              console.log(999999910, source)
-                  return (this as any).resolve("vue")
-                }
+            return {
+              find: new RegExp(`__mf__prebuildwrapa/abcabc`), customResolver(source: string, replacement: "$$$aad", importer: string) {
+                console.log(999999910, source)
+                return (this as any).resolve("vue")
+              }
             }
           })
         );
