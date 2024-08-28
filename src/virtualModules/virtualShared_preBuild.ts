@@ -30,11 +30,11 @@ export function getLocalSharedImportMapId() {
 let shareds: Record<string, null> = {}
 export async function generateLocalSharedImportMap() {
   // await (global as any).parsePromise
-  // await new Promise(res => {
-  //   setTimeout(() => {
-  //     res(1)
-  //   }, 3000);
-  // })
+  await new Promise(res => {
+    setTimeout(() => {
+      res(1)
+    }, 3000);
+  })
   const options = getNormalizeModuleFederationOptions()
   return `
     const localSharedImportMap = {

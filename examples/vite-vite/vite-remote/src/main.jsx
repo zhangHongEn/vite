@@ -1,7 +1,8 @@
+
 import React from 'react';
 import 'react-dom';
 import ReactDOM from 'react-dom/client';
-// import "react/jsx-runtime";
+import * as vue1 from "vue";
 import { AgGridDemo } from './AgGridDemo';
 import App1 from './App1';
 import { App2 } from './App2';
@@ -9,7 +10,7 @@ import { EmotionDemo } from './EmotionDemo';
 import { MuiDemo } from './MuiDemo';
 import StyledDemo from './StyledDemo';
 
-
+console.log(123312, vue1)
 const root = ReactDOM.createRoot(document.getElementById('app'));
 root.render(
   <React.StrictMode>

@@ -63,7 +63,7 @@ export function proxySharedModule(
             return {
               // Intercept all dependency requests to the proxy module
               // Dependency requests issued by localSharedImportMap are allowed without proxying.
-              find: new RegExp(`(^${key}(\/.+)?$)`), replacement: "$1", customResolver(source: string, importer: string) {
+              find: new RegExp(`^${key}$`), replacement: key, customResolver(source: string, importer: string) {
                 if (importer.includes(`${getLocalSharedImportMapId()}`) || importer.includes(getPreBuildLibImportId(source))) {
                   console.log(250250, importer, source)
                   return (this as any).resolve(source)
@@ -82,21 +82,25 @@ export function proxySharedModule(
             }
           })
         );
-        (config.resolve as any).alias.push(
-          ...Object.keys(shared).map((key) => {
-            return command === "build" ?
-              {
-                find: new RegExp(`__mf__virtual/${PREBUILD_TAG}(.+)`), replacement: function (_: string, $1: string) {
-                  return packageNameDecode($1)
+        const cacheMap = new Map()
+          ; (config.resolve as any).alias.push(
+            ...Object.keys(shared).map((key) => {
+              return command === "build" ?
+                {
+                  find: new RegExp(`__mf__virtual/${PREBUILD_TAG}(.+)`), replacement: function (_: string, $1: string) {
+                    return packageNameDecode($1)
+                  }
+                } :
+                {
+                  find: new RegExp(`__mf__virtual/${PREBUILD_TAG}(.+)`), replacement: "$1", async customResolver(source: string, importer: string) {
+                    if (importer.includes(LOAD_SHARE_TAG)) {
+                      cacheMap.set(source, (await (this as any).resolve(packageNameDecode("vue"))).id)
+                    }
+                    return await (this as any).resolve(cacheMap.get(source))
+                  }
                 }
-              } :
-              {
-                find: new RegExp(`__mf__virtual/${PREBUILD_TAG}(.+)`), replacement: function (_: string, $1: string) {
-                  return packageNameDecode($1)
-                }
-              }
-          })
-        );
+            })
+          );
       },
     },
     {
