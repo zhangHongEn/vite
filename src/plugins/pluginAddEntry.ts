@@ -8,9 +8,6 @@ interface AddEntryOptions {
   fileName?: string;
 }
 
-let resolveStartCount = 0
-let resolveEndCount = 0
-
 const addEntry = ({ entryName, entryPath, fileName }: AddEntryOptions): Plugin[] => {
   let entryFiles: string[] = [];
   let htmlFilePath: string;

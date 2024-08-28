@@ -31,16 +31,16 @@ export default defineConfig({
       filename: 'remoteEntry.js',
       shared: {
         vue: {},
-        // react: {
-        //   requiredVersion: '18',
-        // },
-        // 'react-dom': {},
-        // 'styled-components': { singleton: true },
-        // 'ag-grid-community': {},
-        // 'ag-grid-react': {},
-        // '@emotion/react': {},
-        // '@emotion/styled': { singleton: true },
-        // '@mui/material': {},
+        react: {
+          requiredVersion: '18',
+        },
+        'react-dom': {},
+        'styled-components': { singleton: true },
+        'ag-grid-community': {},
+        'ag-grid-react': {},
+        '@emotion/react': {},
+        '@emotion/styled': { singleton: true },
+        '@mui/material': {},
       },
     }),
     // If you set build.target: "chrome89", you can remove this plugin

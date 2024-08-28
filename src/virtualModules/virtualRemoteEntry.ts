@@ -70,7 +70,7 @@ export function generateRemoteEntry(options: NormalizedModuleFederationOptions):
 }
 
 const wrapRemoteEntryModule = new VirtualModule("wrapRemoteEntry")
-wrapRemoteEntryModule.write(`
+wrapRemoteEntryModule.writeSync(`
 import {init, get} from "${REMOTE_ENTRY_ID}"
 export {init, get}
 `)
@@ -82,7 +82,7 @@ export const WRAP_REMOTE_ENTRY_PATH = wrapRemoteEntryModule.getPath();
  * and will not inject remoteEntry
  */
 const hostAutoInitModule = new VirtualModule("hostAutoInit")
-hostAutoInitModule.write(`
+hostAutoInitModule.writeSync(`
     import {init} from "${REMOTE_ENTRY_ID}"
     init()
     `)

@@ -5,6 +5,7 @@
  */
 
 // import { parsePromise } from "../plugins/pluginModuleParseEnd";
+import { parsePromise } from "../plugins/pluginModuleParseEnd";
 import { getNormalizeModuleFederationOptions, ShareItem } from "../utils/normalizeModuleFederationOptions";
 import { removePathFromNpmPackage } from "../utils/packageNameUtils";
 import VirtualModule from "../utils/VirtualModule";
@@ -18,23 +19,26 @@ export function getPreBuildLibPath(pkg: string): string {
   return filepath
 }
 export function writePreBuildLibPath(pkg: string) {
-  cacheMap2[pkg].write("")
+  cacheMap2[pkg].writeSync("")
 }
+
+let shareds: Record<string, null> = {}
 
 // All proxied modules are exposed here
 export const localSharedImportMapModule = new VirtualModule("localSharedImportMap")
-localSharedImportMapModule.write("")
+localSharedImportMapModule.writeSync("")
 export function getLocalSharedImportMapId() {
   return localSharedImportMapModule.getPath()
 }
-let shareds: Record<string, null> = {}
+let prevSharedCount = 0
+export async function writeLocalSharedImportMap() {
+  if (prevSharedCount !== Object.keys(shareds).length) {
+    return localSharedImportMapModule.writeSync(await generateLocalSharedImportMap())
+  }
+}
+
 export async function generateLocalSharedImportMap() {
-  // await (global as any).parsePromise
-  await new Promise(res => {
-    setTimeout(() => {
-      res(1)
-    }, 3000);
-  })
+  await parsePromise
   const options = getNormalizeModuleFederationOptions()
   return `
     const localSharedImportMap = {
@@ -51,7 +55,7 @@ export async function generateLocalSharedImportMap() {
         const shareItem = options.shared[removePathFromNpmPackage(key)];
         return `
           ${JSON.stringify(key)}: {
-            name: ${JSON.stringify(shareItem.name)},
+            name: ${JSON.stringify(key)},
             version: ${JSON.stringify(shareItem.version)},
             scope: [${JSON.stringify(shareItem.scope)}],
             loaded: false,
@@ -99,7 +103,7 @@ export function getPreBuildLibImportId(pkg: string): string {
   return importId
 }
 export function writeLoadShareModule(pkg: string, shareItem: ShareItem, command: string) {
-  cacheMap1[pkg].write(`
+  cacheMap1[pkg].writeSync(`
     () => import(${JSON.stringify(getPreBuildLibImportId(pkg))}).catch(() => {});
     // dev uses dynamic import to separate chunks
     ${command !== "build" ? `;() => import(${JSON.stringify(pkg)}).catch(() => {});` : ''}
@@ -117,6 +121,5 @@ export function writeLoadShareModule(pkg: string, shareItem: ShareItem, command:
 
 
 export function addShare(pkg: string) {
-  console.log("dadadadaaddadd", pkg)
   shareds[pkg] = null
 }

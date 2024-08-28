@@ -1,9 +1,9 @@
-import { mkdirSync, writeFileSync } from "fs";
+import { mkdirSync, writeFile, writeFileSync } from "fs";
 import { resolve } from "pathe";
 import { packageNameEncode } from "../utils/packageNameUtils";
 
 const nodeModulesDir = resolve("./node_modules")
-const virtualPackageName = "__mf__virtual"
+export const virtualPackageName = "__mf__virtual"
 try {
   mkdirSync(resolve(nodeModulesDir, virtualPackageName))
 }catch(e) {}
@@ -28,8 +28,11 @@ export default class VirtualModule {
   getImportId() {
     return `${virtualPackageName}/${packageNameEncode(this.originName)}`
   }
-  write(code: string) {
+  writeSync(code: string) {
     writeFileSync(this.getPath() + ".js", code)
+  }
+  write(code: string) {
+    writeFile(this.getPath() + ".js", code, function () {})
   }
 
 }
