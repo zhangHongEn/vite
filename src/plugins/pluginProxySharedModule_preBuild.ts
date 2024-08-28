@@ -5,7 +5,7 @@ import { Plugin, UserConfig } from 'vite';
 import { NormalizedShared } from '../utils/normalizeModuleFederationOptions';
 import { packageNameDecode } from '../utils/packageNameUtils';
 import { wrapManualChunks } from '../utils/wrapManualChunks';
-import { addShare, generateLocalSharedImportMap, getLoadShareModulePath, getLocalSharedImportMapId, getPreBuildLibImportId, LOAD_SHARE_TAG, PREBUILD_TAG, writeLoadShareModule, writePreBuildLibPath } from '../virtualModules/virtualShared_preBuild';
+import { addShare, generateLocalSharedImportMap, getLoadShareModulePath, getLocalSharedImportMapId, LOAD_SHARE_TAG, PREBUILD_TAG, writeLoadShareModule, writePreBuildLibPath } from '../virtualModules/virtualShared_preBuild';
 export function proxySharedModule(
   options: { shared?: NormalizedShared; include?: string | string[]; exclude?: string | string[] }
 ): Plugin[] {
@@ -55,7 +55,6 @@ export function proxySharedModule(
             return "preload-helper"
           }
         });
-        // config?.optimizeDeps?.include?.push?.("__mf__virtual");
         ; (config.resolve as any).alias.push(
           ...Object.keys(shared).map((key) => {
 
@@ -64,19 +63,12 @@ export function proxySharedModule(
               // Intercept all dependency requests to the proxy module
               // Dependency requests issued by localSharedImportMap are allowed without proxying.
               find: new RegExp(`^${key}$`), replacement: key, customResolver(source: string, importer: string) {
-                if (importer.includes(`${getLocalSharedImportMapId()}`) || importer.includes(getPreBuildLibImportId(source))) {
-                  console.log(250250, importer, source)
-                  return (this as any).resolve(source)
-                }
                 const loadSharePath = getLoadShareModulePath(source)
                 config?.optimizeDeps?.needsInterop?.push(loadSharePath);
-                console.log(155555, source, importer)
                 // write proxyFile
                 writeLoadShareModule(source, shared[key], command)
-                addShare(source)
-                // config?.optimizeDeps?.include?.push?.(getPreBuildLibPath(source));
-                // console.log(5555, getPreBuildLibPath(source).replace("__mf__prebuildwrap_", ""))
                 writePreBuildLibPath(source)
+                addShare(source)
                 return (this as any).resolve(loadSharePath)
               }
             }
@@ -93,9 +85,11 @@ export function proxySharedModule(
                 } :
                 {
                   find: new RegExp(`__mf__virtual/${PREBUILD_TAG}(.+)`), replacement: "$1", async customResolver(source: string, importer: string) {
-                    if (importer.includes(LOAD_SHARE_TAG)) {
-                      cacheMap.set(source, (await (this as any).resolve(packageNameDecode("vue"))).id)
+                    if (importer.includes(LOAD_SHARE_TAG) && !cacheMap.get(source)) {
+                      // save pre-bunding module id
+                      cacheMap.set(source, (await (this as any).resolve(packageNameDecode(source))).id)
                     }
+                    // Fix localSharedImportMap import id
                     return await (this as any).resolve(cacheMap.get(source))
                   }
                 }
