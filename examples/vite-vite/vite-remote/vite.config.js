@@ -13,24 +13,13 @@ export default defineConfig({
   preview: {
     port: 5176,
   },
-  // base: 'http://localhost:5176',
-  experimental: {
-    renderBuiltUrl() {
-      return { relative: true };
-    },
-  },
-  // ssr: {
-  //   target: "node"
-  // },
+  base: 'http://localhost:5176',
   plugins: [
     react({ jsxImportSource: '@emotion/react' }),
     federation({
       name: '@namespace/viteViteRemote',
-      remotes: {
-        add: 'a@https://a.com',
-      },
       exposes: {
-        './App1': './src/App1.jsx',
+        './App1': './src/App1',
         './App2': './src/App2.jsx',
         './AgGridDemo': './src/AgGridDemo.jsx',
         './MuiDemo': './src/MuiDemo.jsx',
@@ -38,7 +27,8 @@ export default defineConfig({
         './EmotionDemo': './src/EmotionDemo.jsx',
         '.': './src/App.jsx',
       },
-      // filename: 'remoteEntry.js',
+      filename: 'remoteEntry-[hash].js',
+      manifest: true,
       shared: {
         vue: {},
         'react/': {},
@@ -59,7 +49,13 @@ export default defineConfig({
     false && topLevelAwait(),
   ],
   build: {
-    manifest: true,
     target: 'chrome89',
+    rollupOptions: {
+      output: {
+        chunkFileNames: 'static/js/[name]-[hash].js',
+        entryFileNames: 'static/js/[name]-[hash].js',
+        assetFileNames: 'static/[ext]/[name]-[hash].[ext]',
+      },
+    },
   },
 });

@@ -9,25 +9,30 @@ interface AddEntryOptions {
 }
 
 const addEntry = ({ entryName, entryPath, fileName }: AddEntryOptions): Plugin[] => {
+  const devEntryPath = entryPath.startsWith('virtual:mf') ? '/@id/' + entryPath : entryPath;
   let entryFiles: string[] = [];
   let htmlFilePath: string;
+  let _command: string;
 
   return [
     {
       name: 'add-entry',
-      apply: "serve",
+      apply: 'serve',
+      config(config, { command }) {
+        _command = command;
+      },
       configureServer(server) {
         server.httpServer?.once?.('listening', () => {
           const { port } = server.config.server;
-          fetch(path.join(`http://localhost:${port}`, `${entryPath}`)).catch(e => { })
+          fetch(path.join(`http://localhost:${port}`, `${devEntryPath}`)).catch((e) => {});
         });
         server.middlewares.use((req, res, next) => {
           if (!fileName) {
-            next()
-            return
+            next();
+            return;
           }
           if (req.url && req.url.startsWith(fileName.replace(/^\/?/, '/'))) {
-            req.url = entryPath;
+            req.url = devEntryPath;
           }
           next();
         });
@@ -36,14 +41,14 @@ const addEntry = ({ entryName, entryPath, fileName }: AddEntryOptions): Plugin[]
         return c.replace(
           '<head>',
           `<head><script type="module" src=${JSON.stringify(
-            entryPath.replace(/.+?\:([/\\])[/\\]?/, '$1').replace(/\\\\?/g, '/')
+            devEntryPath.replace(/.+?\:([/\\])[/\\]?/, '$1').replace(/\\\\?/g, '/')
           )}></script>`
         );
       },
     },
     {
-      name: "add-entry",
-      enforce: "post",
+      name: 'add-entry',
+      enforce: 'post',
       configResolved(config) {
         const inputOptions = config.build.rollupOptions.input;
 
@@ -61,14 +66,18 @@ const addEntry = ({ entryName, entryPath, fileName }: AddEntryOptions): Plugin[]
         }
       },
       buildStart() {
-        const hasHash = fileName?.includes?.("[hash")
-        this.emitFile({
+        if (_command === 'serve') return;
+        const hasHash = fileName?.includes?.('[hash');
+        const emitFileOptions: any = {
           name: entryName,
-          [hasHash ? "name" : "fileName"]: fileName,
           type: 'chunk',
           id: entryPath,
           preserveSignature: 'strict',
-        });
+        };
+        if (!hasHash) {
+          emitFileOptions.fileName = fileName;
+        }
+        this.emitFile(emitFileOptions);
         if (htmlFilePath) {
           const htmlContent = fs.readFileSync(htmlFilePath, 'utf-8');
           const scriptRegex = /<script\s+[^>]*src=["']([^"']+)["'][^>]*>/gi;
@@ -80,16 +89,15 @@ const addEntry = ({ entryName, entryPath, fileName }: AddEntryOptions): Plugin[]
         }
       },
       transform(code, id) {
-        if (entryFiles.some(file => id.endsWith(file))) {
-          console.log(3434334, id, entryPath)
+        if (entryFiles.some((file) => id.endsWith(file))) {
           const injection = `
           import ${JSON.stringify(entryPath)};
           `;
-          return injection + code
+          return injection + code;
         }
-      }
-    }
-  ]
+      },
+    },
+  ];
 };
 
 export default addEntry;

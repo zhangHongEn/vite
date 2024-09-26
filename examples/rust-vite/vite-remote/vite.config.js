@@ -37,8 +37,6 @@ export default defineConfig({
     false && topLevelAwait(),
   ],
   build: {
-    manifest: true,
-    ssrManifest: true,
     target: 'chrome89',
   },
 });

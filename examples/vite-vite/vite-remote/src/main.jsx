@@ -1,5 +1,3 @@
-import "add/fffffffffff";
-import "add/ggggggggggg";
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { AgGridDemo } from './AgGridDemo';

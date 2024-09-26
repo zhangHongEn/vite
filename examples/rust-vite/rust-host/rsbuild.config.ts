@@ -13,29 +13,23 @@ export default defineConfig({
   },
   tools: {
     rspack: (config, { appendPlugins }) => {
-      config.mode = "development"
       config.output!.uniqueName = 'app1';
       appendPlugins([
         new ModuleFederationPlugin({
           name: 'examples_rust',
           remotes: {
-            // "@namespace/viteViteRemote": 'viteRemote@http://localhost:5176/mf-manifest.json',
+            viteRemote: 'http://localhost:5173/dd/remoteEntry.js',
           },
-          // remoteType: 'var',
+          remoteType: 'module',
           exposes: {
             './app': './src/app.tsx',
           },
           manifest: {
-            filePath: '',
+            filePath: 'manifestpath',
           },
           shared: [
-            {
-              name: 'react',
-              version: "18.0.0"
-            },
-            'react/',
+            'react',
             'react-dom',
-            'react-dom/',
             'vue',
             // 'antd'
           ],

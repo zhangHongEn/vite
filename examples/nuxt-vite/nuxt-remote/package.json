@@ -3,17 +3,19 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "prebuild": "nuxt prepare",
     "build": "nuxt build",
+    "predev": "nuxt prepare",
     "dev": "NODE_OPTIONS=--experimental-vm-modules nuxt dev --experimental-vm-modules",
     "generate": "nuxt generate",
-    "preview": "nuxt preview --port=3001",
-    "postinstall": "nuxt prepare"
+    "preview": "nuxt preview --port=3001"
   },
   "dependencies": {
-    "@module-federation/runtime": "^0.6.0",
-    "@module-federation/sdk": "^0.6.1",
     "@module-federation/vite": "workspace:*",
     "nuxt": "^3.13.0",
     "vue": "latest"
+  },
+  "devDependencies": {
+    "vite-plugin-top-level-await": "^1.4.4"
   }
 }

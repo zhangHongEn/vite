@@ -1,23 +1,38 @@
-import { writeHostAutoInit, writeWrapRemoteEntry } from "./virtualRemoteEntry";
-import { writeLocalSharedImportMap } from "./virtualShared_preBuild";
+import { writeHostAutoInit, writeLocalSharedImportMap } from './virtualRemoteEntry';
+import { writeRuntimeInitStatus } from './virtualRuntimeInitStatus';
 
 export {
-  generateRemoteEntry, getHostAutoInitImportId,
-  getHostAutoInitPath, getWrapRemoteEntryImportId,
-  getWrapRemoteEntryPath, REMOTE_ENTRY_ID
-} from "./virtualRemoteEntry";
+  addUsedShares,
+  generateLocalSharedImportMap,
+  generateRemoteEntry,
+  getHostAutoInitImportId,
+  getHostAutoInitPath,
+  getLocalSharedImportMapPath,
+  getUsedShares,
+  REMOTE_ENTRY_ID,
+  writeLocalSharedImportMap,
+} from './virtualRemoteEntry';
 
 export {
-  generateRemotes, remoteVirtualModule
-} from "./virtualRemotes";
+  addUsedRemote,
+  generateRemotes,
+  getRemoteVirtualModule,
+  getUsedRemotesMap,
+} from './virtualRemotes';
 
 export {
-  addShare, generateLocalSharedImportMap, getLoadShareModulePath, getLocalSharedImportMapPath, getPreBuildLibImportId, LOAD_SHARE_TAG, localSharedImportMapModule, PREBUILD_TAG, writeLoadShareModule, writeLocalSharedImportMap, writePreBuildLibPath
-} from "./virtualShared_preBuild";
+  getLoadShareModulePath,
+  getPreBuildLibImportId,
+  LOAD_SHARE_TAG,
+  PREBUILD_TAG,
+  writeLoadShareModule,
+  writePreBuildLibPath,
+} from './virtualShared_preBuild';
+
+export { virtualRuntimeInitStatus } from './virtualRuntimeInitStatus';
 
 export function initVirtualModules() {
-  writeLocalSharedImportMap()
-  writeWrapRemoteEntry()
-  writeHostAutoInit()
-  // writeRemote()
+  writeLocalSharedImportMap();
+  writeHostAutoInit();
+  writeRuntimeInitStatus();
 }

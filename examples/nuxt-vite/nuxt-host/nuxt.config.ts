@@ -1,22 +1,16 @@
 import { federation } from '@module-federation/vite';
-import topl from "vite-plugin-top-level-await";
+import TopAwait from 'vite-plugin-top-level-await';
 
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   debug: true,
   devtools: { enabled: true },
-  // experimental: {
-  //   appManifest: true
-  // },
   vite: {
     plugins: [
       federation({
         name: 'nuxhost',
         remotes: {
-          '@namespace/viteViteRemote': {
-            entry: 'http://localhost:3000/_nuxt/mf-manifest.json',
-            type: 'module',
-          },
+          '@namespace/viteViteRemote': 'viteRemote@http://localhost:3000/_nuxt/mf-manifest.json',
         },
         filename: 'remoteEntry.js',
         shared: {
@@ -26,8 +20,11 @@ export default defineNuxtConfig({
         // exposes: {
         //   "./App": "./App.vue"
         // }
+        // manifest: {
+        //   fileName: "_nuxt/mf-manifest.json",
+        // }
       }),
-      new topl()
+      new TopAwait(),
     ],
     build: {
       target: 'chrome89',

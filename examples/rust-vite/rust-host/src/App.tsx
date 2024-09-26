@@ -1,13 +1,11 @@
-// import ViteApp from '@namespace/viteViteRemote/App1';
-// import ViteApp2 from 'viteRemote/App2';
+import ViteApp from 'viteRemote/App';
 
 export default function Button() {
   return (
     <div>
       rust host
       <hr />
-      {/* <ViteApp2 /> */}
-      {/* <ViteApp /> */}
+      <ViteApp />
     </div>
   );
 }
