@@ -1,0 +1,4 @@
+UserID,UserName,Gender,Age,Location,LastLogin,PurchaseAmount,PurchaseCategory,ReviewScore,LoginFrequency
+2,B,Female,20,北京,2025,-0.6704783996548059,生活用品,-0.32025630761017415,每周
+3,C,Male,30,南京,2025,-0.4789131426105757,服装,-0.8006407690254355,每月
+4,D,Male,40,上海,2025,1.1493915422653818,食品,1.12089707663561,每日
